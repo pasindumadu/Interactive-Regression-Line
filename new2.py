@@ -6,7 +6,7 @@ import streamlit as st
 st.title("Interactive Linear Regression with Total Error")
 
 # Instructions
-st.write("Use the controls below to adjust the slope and intercept of the regression line. The interface adapts to mobile and desktop screens.")
+st.write("Use the controls below to adjust the slope and intercept of the regression line.")
 
 # Responsive layout for controls
 col1, col2 = st.columns(2)
