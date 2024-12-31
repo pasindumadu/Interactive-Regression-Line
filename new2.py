@@ -89,29 +89,49 @@ with tab1:
     # Display Main Chart
     st.altair_chart(chart, use_container_width=True)
 
-    # Dynamic Horizontal Total Error Bar Chart
-    st.markdown("### 🔢 Total Error")
-    error_data = pd.DataFrame({"Error Type": ["Current Error"], "Error Value": [total_error]})
-    error_chart = alt.Chart(error_data).mark_bar(size=20).encode(
-        x=alt.X("Error Value", axis=alt.Axis(title="Error Magnitude")),
-        y=alt.Y("Error Type", axis=None),
-        color=alt.condition(
-            alt.datum["Error Value"] < 200,
-            alt.value("green"),  # Green for low error
-            alt.value("red")    # Red for high error
+# Dynamic Horizontal Total Error Bar Chart
+st.markdown("### 🔢 Total Error")
+max_error = 500  # Set a maximum range for the error to keep scaling constant
+clamped_error = min(total_error, max_error)  # Clamp the error to the maximum value
+
+# Prepare error data
+error_data = pd.DataFrame({
+    "Error Type": ["Current Error"],
+    "Error Value": [clamped_error],  # Display clamped error
+    "Actual Error": [total_error]  # Store actual error for tooltip
+})
+
+# Create bar chart
+error_chart = alt.Chart(error_data).mark_bar(size=20).encode(
+    x=alt.X(
+        "Error Value",
+        scale=alt.Scale(domain=[0, max_error]),  # Fix the scale
+        axis=alt.Axis(title="Error Magnitude")
+    ),
+    y=alt.Y("Error Type", axis=None),
+    color=alt.Color(
+        "Error Value",
+        scale=alt.Scale(
+            domain=[0, max_error], 
+            range=["green", "yellow", "red"]
         ),
-        tooltip=["Error Value"]
-    ).properties(width=800, height=60)
+        legend=None
+    ),
+    tooltip=["Actual Error"]  # Show the actual error value in the tooltip
+).properties(width=800, height=60)
 
-    st.altair_chart(error_chart, use_container_width=True)
+st.altair_chart(error_chart, use_container_width=True)
 
-    # Error Evaluation
-    if total_error < 50:
-        st.success("Great Fit! 🎉")
-    elif total_error < 200:
-        st.warning("Good Fit! Could Improve 🧐")
-    else:
-        st.error("High Error! 🚨 Try Adjusting.")
+# Error Evaluation
+if total_error < 50:
+    st.success("Great Fit! 🎉")
+elif total_error < 200:
+    st.warning("Good Fit! Could Improve 🧐")
+elif total_error <= max_error:
+    st.error("High Error! 🚨 Try Adjusting.")
+else:
+    st.error(f"Error exceeds {max_error}! Displaying maximum value.")
+
 
     # Footer
     st.markdown("""
